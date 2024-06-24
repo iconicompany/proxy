@@ -43,7 +43,7 @@ function FindProxyForURL(url, host) {
     shExpMatch(host, "(*.|)shadcn.com") ||
     shExpMatch(host, "(*.|)armbian.com") ||
     shExpMatch(host, "(*.|)dgraph.io") ||
-    shExpMatch(host, "(*.|)time4vps.com") ||
+    shExpMatch(host, "(*.|)time4vps.com")
     return "HTTPS proxy.iconicompany.com:3129";
   }
 
