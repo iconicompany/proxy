@@ -1,0 +1,51 @@
+/*globals isPlainHostName, shExpMatch */
+// TEST: https://pactester.brdbnt.com/
+
+function FindProxyForURL(url, host) {
+  if (
+    shExpMatch(host, "(*.|)alpenhost.at") ||
+    shExpMatch(host, "(*.|)semanticscholar.org") ||
+    shExpMatch(host, "(*.|)oaiusercontent.com") ||
+    shExpMatch(host, "(*.|)brain-source.com") ||
+    shExpMatch(host, "(*.|)trello.com") ||
+    shExpMatch(host, "(*.|)atlassian.com") ||
+    shExpMatch(host, "(*.|)powerpointbase.com") ||
+    shExpMatch(host, "(*.|)hashnode.dev") ||
+    shExpMatch(host, "(*.|)prompthero.com") ||
+    shExpMatch(host, "(*.|)bing.com") ||
+    shExpMatch(host, "(*.|)microsoft.com") ||
+    shExpMatch(host, "(*.|)magicslides.app") ||
+    shExpMatch(host, "(*.|)gptforslides.app") ||
+    shExpMatch(host, "(*.|)anthropic.com") ||
+    shExpMatch(host, "(*.|)prisma.io") ||
+    shExpMatch(host, "(*.|)next-auth.js.org") ||
+    shExpMatch(host, "(*.|)ngrok.com") ||
+    shExpMatch(host, "(*.|)medium.com") ||
+    shExpMatch(host, "(*.|)gitguardian.com") ||
+    shExpMatch(host, "(*.|)linkedin.com") ||
+    shExpMatch(host, "(*.|)langchain.com") ||
+    shExpMatch(host, "(*.|)wetransfer.com") ||
+    shExpMatch(host, "(*.|)twitter.com") ||
+    shExpMatch(host, "(*.|)twimg.com") ||
+    shExpMatch(host, "(*.|)eventcat.com") ||
+    shExpMatch(host, "(*.|)openai.com") ||
+    shExpMatch(host, "(*.|)chatgpt.com") ||
+    shExpMatch(host, "(*.|)oaistatic.com") ||
+    shExpMatch(host, "(*.|)upwork.com") ||
+    shExpMatch(host, "(*.|)hashicorp.com") ||
+    shExpMatch(host, "(*.|)terraform.io") ||
+    shExpMatch(host, "(*.|)canva.com") ||
+    shExpMatch(host, "(*.|)ti.com") ||
+    shExpMatch(host, "(*.|)mongodb.org") ||
+    shExpMatch(host, "(*.|)devart.com") ||
+    shExpMatch(host, "(*.|)forgerock.com") ||
+    shExpMatch(host, "(*.|)vercel.app") ||
+    shExpMatch(host, "(*.|)shadcn.com") ||
+    shExpMatch(host, "(*.|)armbian.com") ||
+    shExpMatch(host, "(*.|)dgraph.io") ||
+    shExpMatch(host, "(*.|)time4vps.com") ||
+    return "HTTPS proxy.iconicompany.com:3129";
+  }
+
+  return "DIRECT";
+}
