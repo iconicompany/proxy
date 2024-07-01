@@ -3,6 +3,7 @@
 
 function FindProxyForURL(url, host) {
   if (
+    shExpMatch(host, "(*.|)grammarly.com") ||
     shExpMatch(host, "(*.|)alpenhost.at") ||
     shExpMatch(host, "(*.|)semanticscholar.org") ||
     shExpMatch(host, "(*.|)oaiusercontent.com") ||
