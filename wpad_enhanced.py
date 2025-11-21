@@ -227,22 +227,10 @@ def fetch_aws_cloudfront() -> List[str]:
 
 # === PAC generators helpers ===
 
-def generate_sh_expmatch_list(domains: List[str]) -> List[str]:
+def generate_sh_expmatch_list(domains):
     if not domains:
         return []
-    out = []
-    for d in domains:
-        d = d.strip()
-        if not d:
-            continue
-        # handle wildcard leading
-        if d.startswith("*."):
-            dom = d[2:]
-            out.append(f'        shExpMatch(host, "*.{dom}")')
-            out.append(f'        shExpMatch(host, "{dom}")')
-        else:
-            out.append(f'        shExpMatch(host, "{d}")')
-    return out
+    return [f'        shExpMatch(host, "(*.|){d}")' for d in domains]
 
 
 def generate_ipv4_rule(cidr: str) -> str:
