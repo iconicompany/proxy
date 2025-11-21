@@ -1,0 +1,40 @@
+name: Build WPAD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: write      # нужно для пуша в gh-pages или в docs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install ipaddress requests dotenv
+
+      - name: Generate WPAD (PAC file)
+        run: |
+          python ./wpad.py
+
+      - name: Commit and push WPAD
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add wpad.dat
+          git commit -m "Update wpad.dat" || echo "No changes"
+          git push
+

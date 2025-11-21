@@ -1,0 +1,189 @@
+function FindProxyForURL(url, host) {
+
+    // ====================================================
+    // 1. ПРОВЕРКА ДОМЕНОВ (Строковые операции, быстро)
+    // ====================================================
+
+    // 1.1. DIRECT Exception Domains (Исключения)
+    if (
+        shExpMatch(host, "(*.|)*.ru") ||
+        shExpMatch(host, "(*.|)*.su") ||
+        shExpMatch(host, "(*.|)*.xn--p1ai") ||
+        shExpMatch(host, "(*.|)*.telegram.org") ||
+        shExpMatch(host, "(*.|)*.live.com")
+    ) {
+        return "DIRECT";
+    }
+
+    // 1.2. Proxy Domains (Явный список для прокси)
+    if (
+        shExpMatch(host, "(*.|)intema.ai") ||
+        shExpMatch(host, "(*.|)beeai.dev") ||
+        shExpMatch(host, "(*.|)authjs.dev") ||
+        shExpMatch(host, "(*.|)addy.ie") ||
+        shExpMatch(host, "(*.|)gitingest.com") ||
+        shExpMatch(host, "(*.|)huggingface.co") ||
+        shExpMatch(host, "(*.|)cheatingdaddy.com") ||
+        shExpMatch(host, "(*.|)manus.im") ||
+        shExpMatch(host, "(*.|)heygen.com") ||
+        shExpMatch(host, "(*.|)mermaidchart.com") ||
+        shExpMatch(host, "(*.|)claude.com") ||
+        shExpMatch(host, "(*.|)notion.*") ||
+        shExpMatch(host, "(*.|)fireworks.ai") ||
+        shExpMatch(host, "(*.|)litellm.ai") ||
+        shExpMatch(host, "(*.|)oxc.rs") ||
+        shExpMatch(host, "(*.|)openevidence.com") ||
+        shExpMatch(host, "(*.|)oaistatic.com") ||
+        shExpMatch(host, "(*.|)chatgpt.com") ||
+        shExpMatch(host, "(*.|)openai.com") ||
+        shExpMatch(host, "(*.|)openlume.com") ||
+        shExpMatch(host, "(*.|)clickup.com") ||
+        shExpMatch(host, "(*.|)myip.com") ||
+        shExpMatch(host, "(*.|)canva.com") ||
+        shExpMatch(host, "(*.|)gstatic.com") ||
+        shExpMatch(host, "(*.|)googleadservices.com") ||
+        shExpMatch(host, "(*.|)googleapis.com") ||
+        shExpMatch(host, "(*.|)google.*") ||
+        shExpMatch(host, "(*.|)googlevideo.com") ||
+        shExpMatch(host, "(*.|)youtu.be") ||
+        shExpMatch(host, "(*.|)youtube.*") ||
+        shExpMatch(host, "(*.|)linkedin.com") ||
+        shExpMatch(host, "(*.|)x.com") ||
+        shExpMatch(host, "(*.|)twimg.com") ||
+        shExpMatch(host, "(*.|)microsoft.com")
+    ) {
+        return "HTTPS proxy.iconicompany.com:3129";
+    }
+
+    // ====================================================
+    // 2. РЕЗОЛВ IP (Блокирующая операция)
+    // Выполняем только если домены не совпали
+    // ====================================================
+    var ip = dnsResolve(host);
+
+    // Защита от сбоев DNS
+    if (!ip || (ip.indexOf(".") === -1 && ip.indexOf(":") === -1)) {
+        return "DIRECT";
+    }
+
+    // ====================================================
+    // 3. ПРОВЕРКА IP ДЛЯ ПРЯМОГО ДОСТУПА (DIRECT)
+    // (IP из .env: локальные сети, VPN и т.д.)
+    // ====================================================
+
+    // 3.1. IPv4 DIRECT (Native isInNet)
+    if (
+        isInNet(ip, "10.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "172.16.0.0", "255.240.0.0") ||
+        isInNet(ip, "192.168.0.0", "255.255.0.0") ||
+        isInNet(ip, "5.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "31.128.0.0", "255.128.0.0") ||
+        isInNet(ip, "37.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "46.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "77.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "78.0.0.0", "254.0.0.0") ||
+        isInNet(ip, "80.0.0.0", "240.0.0.0") ||
+        isInNet(ip, "176.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "178.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "185.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "188.0.0.0", "255.0.0.0") ||
+        isInNet(ip, "212.0.0.0", "254.0.0.0") ||
+        isInNet(ip, "217.0.0.0", "255.0.0.0")
+    ) {
+        return "DIRECT";
+    }
+
+    // 3.2. IPv6 DIRECT helpers & check
+    // (Функции IPv6 определим ниже, но логика проверки здесь, 
+    // если вы используете IPv6 в .env для direct)
+    
+    // ... (IPv6 logic definition starts here) ...
+
+    function expandIPv6(ipv6) {
+        if (ipv6.indexOf("::") !== -1) {
+            const parts = ipv6.split("::");
+            const left = parts[0] ? parts[0].split(":") : [];
+            const right = parts[1] ? parts[1].split(":") : [];
+            const fill = new Array(8 - left.length - right.length).fill("0");
+            ipv6 = [...left, ...fill, ...right].join(":");
+        }
+        return ipv6;
+    }
+
+    function parseIPv6(ipv6) {
+        try {
+            const full = expandIPv6(ipv6).split(":");
+            if (full.length !== 8) return false;
+
+            let hex = "";
+            for (let part of full) {
+                hex += part.padStart(4, "0");
+            }
+
+            return BigInt("0x" + hex);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function inIPv6Range(ipv6, low, high) {
+        if (ipv6.indexOf(":") === -1) return false;
+        const ip = parseIPv6(ipv6);
+        const lo = parseIPv6(low);
+        const hi = parseIPv6(high);
+        if (ip === false || lo === false || hi === false) return false;
+        return ip >= lo && ip <= hi;
+    }
+
+    // 3.2. IPv6 DIRECT Check
+    if (
+false
+    ) {
+        return "DIRECT";
+    }
+
+
+    // ====================================================
+    // 4. ПРОВЕРКА IP ДЛЯ ПРОКСИ (Cloudflare, Vercel)
+    // ====================================================
+
+    // 4.1. IPv4 PROXY
+    if (
+        isInNet(ip, "173.245.48.0", "255.255.240.0") ||
+        isInNet(ip, "103.21.244.0", "255.255.252.0") ||
+        isInNet(ip, "103.22.200.0", "255.255.252.0") ||
+        isInNet(ip, "103.31.4.0", "255.255.252.0") ||
+        isInNet(ip, "141.101.64.0", "255.255.192.0") ||
+        isInNet(ip, "108.162.192.0", "255.255.192.0") ||
+        isInNet(ip, "190.93.240.0", "255.255.240.0") ||
+        isInNet(ip, "188.114.96.0", "255.255.240.0") ||
+        isInNet(ip, "197.234.240.0", "255.255.252.0") ||
+        isInNet(ip, "198.41.128.0", "255.255.128.0") ||
+        isInNet(ip, "162.158.0.0", "255.254.0.0") ||
+        isInNet(ip, "104.16.0.0", "255.248.0.0") ||
+        isInNet(ip, "104.24.0.0", "255.252.0.0") ||
+        isInNet(ip, "172.64.0.0", "255.248.0.0") ||
+        isInNet(ip, "131.0.72.0", "255.255.252.0") ||
+        isInNet(ip, "13.248.155.104", "255.255.255.255") ||
+        isInNet(ip, "76.223.126.88", "255.255.255.255") ||
+        isInNet(ip, "76.76.21.21", "255.255.255.255")
+    ) {
+        return "HTTPS proxy.iconicompany.com:3129";
+    }
+
+    // 4.2. IPv6 PROXY
+    if (
+        inIPv6Range(ip, "2400:cb00::", "2400:cb00:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2606:4700::", "2606:4700:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2803:f800::", "2803:f800:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2405:b500::", "2405:b500:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2405:8100::", "2405:8100:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2a06:98c0::", "2a06:98c7:ffff:ffff:ffff:ffff:ffff:ffff") ||
+        inIPv6Range(ip, "2c0f:f248::", "2c0f:f248:ffff:ffff:ffff:ffff:ffff:ffff")
+    ) {
+        return "HTTPS proxy.iconicompany.com:3129";
+    }
+
+    // По умолчанию
+    return "DIRECT";
+}
