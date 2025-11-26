@@ -18,14 +18,12 @@ CACHE_TTL = 60 * 60 * 24  # 24 hours
 
 # === PAC template ===
 PAC_HEADER = """function FindProxyForURL(url, host) {{
-
     // QUICK DOMAIN MATCHES (string operations)
     if (
 {direct_domain_rules}
     ) {{
         return "DIRECT";
     }}
-
     if (
 {domain_rules}
     ) {{
@@ -55,7 +53,6 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
         }}
         return ipv6;
     }}
-
     function parseIPv6(ipv6) {{
         try {{
             const full = expandIPv6(ipv6).split(":");
@@ -67,7 +64,6 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
             return BigInt("0x" + hex);
         }} catch (e) {{ return false; }}
     }}
-
     function inIPv6Range(ipv6, low, high) {{
         if (ipv6.indexOf(":") === -1) return false;
         const ip = parseIPv6(ipv6);
@@ -103,7 +99,6 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
 """
 
 # === Helpers ===
-
 def cache_get(name: str):
     p = CACHE_DIR / f"{name}.json"
     if not p.exists():
@@ -116,16 +111,15 @@ def cache_get(name: str):
     except Exception:
         return None
 
-
 def cache_set(name: str, obj):
     p = CACHE_DIR / f"{name}.json"
     p.write_text(json.dumps(obj))
-
 
 # normalize and dedupe CIDRs
 def normalize_cidrs(cidrs: List[str]) -> Tuple[List[str], List[str]]:
     v4_set: Set[str] = set()
     v6_set: Set[str] = set()
+    
     for c in cidrs:
         c = c.strip()
         if not c:
@@ -146,14 +140,49 @@ def normalize_cidrs(cidrs: List[str]) -> Tuple[List[str], List[str]]:
                     v6_set.add(str(ip) + "/128")
             except Exception:
                 continue
+                
     # sort
     v4 = sorted(v4_set, key=lambda x: (ipaddress.ip_network(x).network_address.packed, ipaddress.ip_network(x).prefixlen))
     v6 = sorted(v6_set, key=lambda x: (ipaddress.ip_network(x).network_address.packed, ipaddress.ip_network(x).prefixlen))
     return v4, v6
 
+def aggregate_ipv4_cidrs(cidrs: List[str], mask_env: str) -> List[str]:
+    """
+    Aggregates IPv4 CIDRs based on IPV4_MASK (e.g., /16).
+    If a network is smaller (e.g. /24), it is supernetted to the mask.
+    If a network is already larger (e.g. /8), it remains as is.
+    """
+    if not mask_env or not mask_env.startswith('/'):
+        return cidrs
+    
+    try:
+        target_len = int(mask_env.replace('/', ''))
+    except ValueError:
+        print(f"Invalid IPV4_MASK format: {mask_env}. Skipping aggregation.")
+        return cidrs
+
+    print(f"Aggregating IPv4 networks to max {mask_env}...")
+    agg_set = set()
+    
+    for c in cidrs:
+        try:
+            net = ipaddress.IPv4Network(c, strict=False)
+            # If current prefix is longer (smaller network), e.g. 24 > 16, truncate to 16
+            if net.prefixlen > target_len:
+                # Create a new network with the target prefix length
+                # strict=False ensures host bits are zeroed out (e.g. 1.2.3.0/24 -> 1.2.0.0/16)
+                supernet = ipaddress.IPv4Network(f"{net.network_address}/{target_len}", strict=False)
+                agg_set.add(str(supernet))
+            else:
+                # Keep existing if it's already a big network (e.g. /8)
+                agg_set.add(str(net))
+        except Exception:
+            continue
+            
+    # Sort and return
+    return sorted(list(agg_set), key=lambda x: (ipaddress.ip_network(x).network_address.packed, ipaddress.ip_network(x).prefixlen))
 
 # === Fetchers ===
-
 def fetch_url_json(url: str, cache_name: str = None):
     if cache_name:
         cached = cache_get(cache_name)
@@ -169,7 +198,6 @@ def fetch_url_json(url: str, cache_name: str = None):
     except Exception as e:
         print(f"Failed to fetch JSON {url}: {e}")
         return None
-
 
 def fetch_text(url: str, cache_name: str = None):
     if cache_name:
@@ -187,7 +215,6 @@ def fetch_text(url: str, cache_name: str = None):
         print(f"Failed to fetch text {url}: {e}")
         return None
 
-
 def fetch_cloudflare_ips(version='v4') -> List[str]:
     url = f"https://www.cloudflare.com/ips-{version}"
     text = fetch_text(url, cache_name=f"cloudflare_{version}")
@@ -195,10 +222,7 @@ def fetch_cloudflare_ips(version='v4') -> List[str]:
         return []
     return [l.strip() for l in text.splitlines() if l.strip()]
 
-
 def fetch_vercel_ips() -> List[str]:
-    # Vercel does not publish a single canonical list; include known edge IPs and prefixes
-    # Keep a small static list as fallback
     return [
         "76.76.21.21/32",
         "76.223.126.88/32",
@@ -214,7 +238,6 @@ def fetch_google_ips() -> List[str]:
     prefixes += [p.get('ipv6Prefix') for p in data.get('prefixes', []) if p.get('ipv6Prefix')]
     return prefixes
 
-
 def fetch_aws_cloudfront() -> List[str]:
     url = "https://ip-ranges.amazonaws.com/ip-ranges.json"
     data = fetch_url_json(url, cache_name="aws_ip_ranges")
@@ -224,19 +247,15 @@ def fetch_aws_cloudfront() -> List[str]:
     prefixes += [p['ipv6_prefix'] for p in data.get('ipv6_prefixes', []) if p.get('service') == 'CLOUDFRONT']
     return prefixes
 
-
 # === PAC generators helpers ===
-
 def generate_sh_expmatch_list(domains):
     if not domains:
         return []
     return [f'        shExpMatch(host, "(*.|){d}")' for d in domains]
 
-
 def generate_ipv4_rule(cidr: str) -> str:
     net = ipaddress.IPv4Network(cidr)
     return f'        isInNet(ip, "{net.network_address}", "{net.netmask}")'
-
 
 def generate_ipv6_rule(cidr: str) -> str:
     net = ipaddress.IPv6Network(cidr)
@@ -244,17 +263,16 @@ def generate_ipv6_rule(cidr: str) -> str:
     end = net.broadcast_address
     return f'        inIPv6Range(ip, "{start}", "{end}")'
 
-
 def build_pac(direct_domains: List[str], proxy_domains: List[str],
               ipv4_direct: List[str], ipv6_direct: List[str],
               ipv4_proxy: List[str], ipv6_proxy: List[str]) -> str:
-
+    
     direct_domain_str = " ||\n".join(generate_sh_expmatch_list(direct_domains)) or "false"
     proxy_domain_str = " ||\n".join(generate_sh_expmatch_list(proxy_domains)) or "false"
-
+    
     ipv4_direct_str = " ||\n".join([generate_ipv4_rule(c) for c in ipv4_direct]) or "false"
     ipv6_direct_str = " ||\n".join([generate_ipv6_rule(c) for c in ipv6_direct]) or "false"
-
+    
     ipv4_proxy_str = " ||\n".join([generate_ipv4_rule(c) for c in ipv4_proxy]) or "false"
     ipv6_proxy_str = " ||\n".join([generate_ipv6_rule(c) for c in ipv6_proxy]) or "false"
 
@@ -267,9 +285,7 @@ def build_pac(direct_domains: List[str], proxy_domains: List[str],
         ipv6_proxy_rules=ipv6_proxy_str
     )
 
-
 # === Main ===
-
 def main():
     # Load environment variables if present
     from dotenv import load_dotenv
@@ -278,45 +294,50 @@ def main():
     # Domains from env
     proxy_domains = [d.strip() for d in os.getenv("PROXY_DOMAINS", "").split(",") if d.strip()]
     direct_domains = [d.strip() for d in os.getenv("PROXY_DIRECT_DOMAINS", "").split(",") if d.strip()]
-
+    
     # Direct IPs from env
     ipv4_direct_env = [c.strip() for c in os.getenv("PROXY_DIRECT_IPV4", "").split(",") if c.strip()]
     ipv6_direct_env = [c.strip() for c in os.getenv("PROXY_DIRECT_IPV6", "").split(",") if c.strip()]
+    
+    # Aggregation Mask (NEW)
+    ipv4_mask = os.getenv("IPV4_MASK", "").strip()
 
     # === Fetch proxy networks ===
     all_proxy_prefixes: List[str] = []
-
+    
     # Cloudflare
     all_proxy_prefixes += fetch_cloudflare_ips('v4')
     all_proxy_prefixes += fetch_cloudflare_ips('v6')
-
+    
     # Vercel
     all_proxy_prefixes += fetch_vercel_ips()
-
-    # Google
+    
+    # Google (Optional, commented out in original)
     #all_proxy_prefixes += fetch_google_ips()
-
+    
     # AWS CloudFront
     all_proxy_prefixes += fetch_aws_cloudfront()
 
-    # Microsoft
-    #all_proxy_prefixes += fetch_microsoft_prefixes()
-
-    # normalize and dedupe
+    # Normalize and dedupe (Step 1: Clean raw input)
     ipv4_proxy_list, ipv6_proxy_list = normalize_cidrs(all_proxy_prefixes)
 
-    # normalize direct lists
+    # Apply Aggregation Mask (Step 2: Reduce to /16 if requested)
+    if ipv4_mask:
+        before_count = len(ipv4_proxy_list)
+        ipv4_proxy_list = aggregate_ipv4_cidrs(ipv4_proxy_list, ipv4_mask)
+        print(f"Applied IPv4 mask {ipv4_mask}: reduced from {before_count} to {len(ipv4_proxy_list)} rules.")
+
+    # Normalize direct lists
     ipv4_direct_norm, ipv6_direct_norm = normalize_cidrs(ipv4_direct_env + ipv6_direct_env)
 
-    print(f"Fetched proxy networks: {len(ipv4_proxy_list)} IPv4, {len(ipv6_proxy_list)} IPv6")
+    print(f"Final proxy networks: {len(ipv4_proxy_list)} IPv4, {len(ipv6_proxy_list)} IPv6")
     print(f"Direct networks (env): {len(ipv4_direct_norm)} IPv4, {len(ipv6_direct_norm)} IPv6")
 
     pac = build_pac(direct_domains, proxy_domains, ipv4_direct_norm, ipv6_direct_norm, ipv4_proxy_list, ipv6_proxy_list)
-
+    
     out = Path('wpad-enhanced.dat')
     out.write_text(pac)
     print(f"wpad.dat generated: {out.resolve()}")
-
 
 if __name__ == '__main__':
     main()
