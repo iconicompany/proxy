@@ -313,7 +313,7 @@ def main():
 
     pac = build_pac(direct_domains, proxy_domains, ipv4_direct_norm, ipv6_direct_norm, ipv4_proxy_list, ipv6_proxy_list)
 
-    out = Path('wpad_enhanced.dat')
+    out = Path('wpad-enhanced.dat')
     out.write_text(pac)
     print(f"wpad.dat generated: {out.resolve()}")
 
