@@ -35,14 +35,16 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
         return "DIRECT";
     }}
 
-    // IPv4 DIRECT
-    if (
+    // IPv4 DIRECT (String Match: ip.indexOf)
+    if (ip.indexOf(".") !== -1) {{
+        if (
 {ipv4_direct_rules}
-    ) {{
-        return "DIRECT";
+        ) {{
+            return "DIRECT";
+        }}
     }}
     
-    // IPv6 DIRECT (String Match)
+    // IPv6 DIRECT (String Match: ip.indexOf)
     if (ip.indexOf(":") !== -1) {{
         if (
 {ipv6_direct_rules}
@@ -51,14 +53,16 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
         }}
     }}
 
-    // IPv4 PROXY
-    if (
+    // IPv4 PROXY (String Match: ip.indexOf)
+    if (ip.indexOf(".") !== -1) {{
+        if (
 {ipv4_proxy_rules}
-    ) {{
-        return "HTTPS proxy.iconicompany.com:3129";
+        ) {{
+            return "HTTPS proxy.iconicompany.com:3129";
+        }}
     }}
 
-    // IPv6 PROXY (String Match)
+    // IPv6 PROXY (String Match: ip.indexOf)
     if (ip.indexOf(":") !== -1) {{
         if (
 {ipv6_proxy_rules}
@@ -70,7 +74,6 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
     return "DIRECT";
 }}
 """
-
 # === Helpers ===
 def cache_get(name: str):
     p = CACHE_DIR / f"{name}.json"
@@ -205,11 +208,38 @@ def fetch_aws_cloudfront() -> List[str]:
 def generate_sh_expmatch_list(domains):
     if not domains:
         return []
-    return [f'        shExpMatch(host, "(*.|){d}")' for d in domains]
+    return [f'      shExpMatch(host, "(*.|){d}")' for d in domains]
 
-def generate_ipv4_rule(cidr: str) -> str:
-    net = ipaddress.IPv4Network(cidr)
-    return f'        isInNet(ip, "{net.network_address}", "{net.netmask}")'
+# *** НОВАЯ ФУНКЦИЯ ДЛЯ IPv4: Использует ip.indexOf вместо isInNet ***
+def generate_ipv4_string_rule(cidr: str) -> str:
+    """
+    Generates a simple string match for IPv4.
+    Example: 192.168.0.0/24 -> ip.indexOf("192.168.0.") === 0
+    """
+    try:
+        net = ipaddress.IPv4Network(cidr)
+        compressed = str(net.network_address)
+        
+        # Exact match for /32 (single host)
+        if net.prefixlen == 32:
+            return f'      ip === "{compressed}"'
+        
+        # Determine the prefix string based on the mask
+        octets_covered = net.prefixlen // 8
+        parts = compressed.split('.')
+        
+        # Construct the prefix string
+        prefix_parts = parts[:octets_covered]
+        clean_prefix = ".".join(prefix_parts)
+        
+        # Append a dot if the mask is a full octet boundary (e.g., /16 -> 192.168.)
+        if net.prefixlen % 8 == 0:
+            clean_prefix += "."
+        
+        # Note: This is a string-matching heuristic, not a bitwise check.
+        return f'      ip.indexOf("{clean_prefix}") === 0'
+    except:
+        return "false"
 
 def generate_ipv6_string_rule(cidr: str) -> str:
     """
@@ -221,44 +251,16 @@ def generate_ipv6_string_rule(cidr: str) -> str:
         # Convert network address to compressed string (e.g., '2606:4700::')
         compressed = str(net.network_address)
         
-        # Determine the safe substring prefix based on mask.
-        # This is a heuristic. We want to stop at the colon that covers the mask.
-        # /16 = 1 chunk (xxxx:)
-        # /32 = 2 chunks (xxxx:xxxx:)
-        # /48 = 3 chunks (xxxx:xxxx:xxxx:)
-        
-        parts = compressed.split(':')
-        
-        # Calculate how many 16-bit blocks are fully covered by the prefix
-        blocks_covered = net.prefixlen // 16
-        if blocks_covered < 1: 
-            blocks_covered = 1 # Safety fallback
-        
-        # Reconstruct the prefix string with a trailing colon
-        # Handle cases where '::' creates empty parts
-        full_parts = net.exploded.split(':') # fully expanded to avoid '::' confusion for slicing
-        
-        prefix_parts = full_parts[:blocks_covered]
-        
-        # Re-compress these parts if possible, but simplest is just join with ':' and ensure trailing ':'
-        # However, to match browser dnsResolve (which returns compressed), we need to be careful.
-        # Simple approach: Check the start of the compressed string provided by python, 
-        # ensuring it ends with ':'
-        
-        # Better approach for PAC:
-        # Just use the exploded parts for the prefix, stripping leading zeros is hard in JS regex without regex.
-        # Let's rely on the Python 'compressed' output but ensure we strip the '::' if it's at the end
-        # and match strictly.
-        
+        # Refinement: If mask is very specific (like /128), string match is full match
+        if net.prefixlen == 128:
+            return f'      ip === "{compressed}"'
+            
+        # Determine the prefix string with a trailing colon for string match
         clean_prefix = compressed.split("::")[0]
         if not clean_prefix.endswith(':'):
             clean_prefix += ':'
             
-        # Refinement: If mask is very specific (like /128), string match is full match
-        if net.prefixlen == 128:
-             return f'        ip === "{compressed}"'
-             
-        return f'        ip.indexOf("{clean_prefix}") === 0'
+        return f'      ip.indexOf("{clean_prefix}") === 0'
     except:
         return "false"
 
@@ -269,10 +271,11 @@ def build_pac(direct_domains: List[str], proxy_domains: List[str],
     direct_domain_str = " ||\n".join(generate_sh_expmatch_list(direct_domains)) or "false"
     proxy_domain_str = " ||\n".join(generate_sh_expmatch_list(proxy_domains)) or "false"
     
-    ipv4_direct_str = " ||\n".join([generate_ipv4_rule(c) for c in ipv4_direct]) or "false"
+    # Используем generate_ipv4_string_rule для всех IPv4-правил
+    ipv4_direct_str = " ||\n".join([generate_ipv4_string_rule(c) for c in ipv4_direct]) or "false"
     ipv6_direct_str = " ||\n".join([generate_ipv6_string_rule(c) for c in ipv6_direct]) or "false"
     
-    ipv4_proxy_str = " ||\n".join([generate_ipv4_rule(c) for c in ipv4_proxy]) or "false"
+    ipv4_proxy_str = " ||\n".join([generate_ipv4_string_rule(c) for c in ipv4_proxy]) or "false"
     ipv6_proxy_str = " ||\n".join([generate_ipv6_string_rule(c) for c in ipv6_proxy]) or "false"
 
     return PAC_HEADER.format(
@@ -296,12 +299,9 @@ def main():
     ipv6_direct_env = [c.strip() for c in os.getenv("PROXY_DIRECT_IPV6", "").split(",") if c.strip()]
     
     # Settings for aggregation
-    # IPv4 default /16 implies taking first 2 bytes
     ipv4_mask_str = os.getenv("IPV4_MASK", "/16").strip() 
     ipv4_mask_int = int(ipv4_mask_str.replace('/', '')) if ipv4_mask_str else None
     
-    # IPv6 default /32 implies taking first 2 groups (e.g. 2606:4700)
-    # This heavily reduces list size for AWS/Cloudflare
     ipv6_mask_str = os.getenv("IPV6_MASK", "/32").strip()
     ipv6_mask_int = int(ipv6_mask_str.replace('/', '')) if ipv6_mask_str else None
 

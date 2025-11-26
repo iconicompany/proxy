@@ -1,49 +1,49 @@
 function FindProxyForURL(url, host) {
     // QUICK DOMAIN MATCHES
     if (
-        shExpMatch(host, "(*.|)*.ru") ||
-        shExpMatch(host, "(*.|)*.su") ||
-        shExpMatch(host, "(*.|)*.xn--p1ai") ||
-        shExpMatch(host, "(*.|)*.telegram.org") ||
-        shExpMatch(host, "(*.|)*.live.com")
+      shExpMatch(host, "(*.|)*.ru") ||
+      shExpMatch(host, "(*.|)*.su") ||
+      shExpMatch(host, "(*.|)*.xn--p1ai") ||
+      shExpMatch(host, "(*.|)*.telegram.org") ||
+      shExpMatch(host, "(*.|)*.live.com")
     ) {
         return "DIRECT";
     }
     if (
-        shExpMatch(host, "(*.|)intema.ai") ||
-        shExpMatch(host, "(*.|)beeai.dev") ||
-        shExpMatch(host, "(*.|)authjs.dev") ||
-        shExpMatch(host, "(*.|)addy.ie") ||
-        shExpMatch(host, "(*.|)gitingest.com") ||
-        shExpMatch(host, "(*.|)huggingface.co") ||
-        shExpMatch(host, "(*.|)cheatingdaddy.com") ||
-        shExpMatch(host, "(*.|)manus.im") ||
-        shExpMatch(host, "(*.|)heygen.com") ||
-        shExpMatch(host, "(*.|)mermaidchart.com") ||
-        shExpMatch(host, "(*.|)claude.com") ||
-        shExpMatch(host, "(*.|)notion.*") ||
-        shExpMatch(host, "(*.|)fireworks.ai") ||
-        shExpMatch(host, "(*.|)litellm.ai") ||
-        shExpMatch(host, "(*.|)oxc.rs") ||
-        shExpMatch(host, "(*.|)openevidence.com") ||
-        shExpMatch(host, "(*.|)oaistatic.com") ||
-        shExpMatch(host, "(*.|)chatgpt.com") ||
-        shExpMatch(host, "(*.|)openai.com") ||
-        shExpMatch(host, "(*.|)openlume.com") ||
-        shExpMatch(host, "(*.|)clickup.com") ||
-        shExpMatch(host, "(*.|)myip.com") ||
-        shExpMatch(host, "(*.|)canva.com") ||
-        shExpMatch(host, "(*.|)gstatic.com") ||
-        shExpMatch(host, "(*.|)googleadservices.com") ||
-        shExpMatch(host, "(*.|)googleapis.com") ||
-        shExpMatch(host, "(*.|)google.*") ||
-        shExpMatch(host, "(*.|)googlevideo.com") ||
-        shExpMatch(host, "(*.|)youtu.be") ||
-        shExpMatch(host, "(*.|)youtube.*") ||
-        shExpMatch(host, "(*.|)linkedin.com") ||
-        shExpMatch(host, "(*.|)x.com") ||
-        shExpMatch(host, "(*.|)twimg.com") ||
-        shExpMatch(host, "(*.|)microsoft.com")
+      shExpMatch(host, "(*.|)intema.ai") ||
+      shExpMatch(host, "(*.|)beeai.dev") ||
+      shExpMatch(host, "(*.|)authjs.dev") ||
+      shExpMatch(host, "(*.|)addy.ie") ||
+      shExpMatch(host, "(*.|)gitingest.com") ||
+      shExpMatch(host, "(*.|)huggingface.co") ||
+      shExpMatch(host, "(*.|)cheatingdaddy.com") ||
+      shExpMatch(host, "(*.|)manus.im") ||
+      shExpMatch(host, "(*.|)heygen.com") ||
+      shExpMatch(host, "(*.|)mermaidchart.com") ||
+      shExpMatch(host, "(*.|)claude.com") ||
+      shExpMatch(host, "(*.|)notion.*") ||
+      shExpMatch(host, "(*.|)fireworks.ai") ||
+      shExpMatch(host, "(*.|)litellm.ai") ||
+      shExpMatch(host, "(*.|)oxc.rs") ||
+      shExpMatch(host, "(*.|)openevidence.com") ||
+      shExpMatch(host, "(*.|)oaistatic.com") ||
+      shExpMatch(host, "(*.|)chatgpt.com") ||
+      shExpMatch(host, "(*.|)openai.com") ||
+      shExpMatch(host, "(*.|)openlume.com") ||
+      shExpMatch(host, "(*.|)clickup.com") ||
+      shExpMatch(host, "(*.|)myip.com") ||
+      shExpMatch(host, "(*.|)canva.com") ||
+      shExpMatch(host, "(*.|)gstatic.com") ||
+      shExpMatch(host, "(*.|)googleadservices.com") ||
+      shExpMatch(host, "(*.|)googleapis.com") ||
+      shExpMatch(host, "(*.|)google.*") ||
+      shExpMatch(host, "(*.|)googlevideo.com") ||
+      shExpMatch(host, "(*.|)youtu.be") ||
+      shExpMatch(host, "(*.|)youtube.*") ||
+      shExpMatch(host, "(*.|)linkedin.com") ||
+      shExpMatch(host, "(*.|)x.com") ||
+      shExpMatch(host, "(*.|)twimg.com") ||
+      shExpMatch(host, "(*.|)microsoft.com")
     ) {
         return "HTTPS proxy.iconicompany.com:3129";
     }
@@ -53,29 +53,31 @@ function FindProxyForURL(url, host) {
         return "DIRECT";
     }
 
-    // IPv4 DIRECT
-    if (
-        isInNet(ip, "5.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "10.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "31.128.0.0", "255.128.0.0") ||
-        isInNet(ip, "37.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "46.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "77.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "78.0.0.0", "254.0.0.0") ||
-        isInNet(ip, "80.0.0.0", "240.0.0.0") ||
-        isInNet(ip, "172.16.0.0", "255.240.0.0") ||
-        isInNet(ip, "176.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "178.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "185.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "188.0.0.0", "255.0.0.0") ||
-        isInNet(ip, "192.168.0.0", "255.255.0.0") ||
-        isInNet(ip, "212.0.0.0", "254.0.0.0") ||
-        isInNet(ip, "217.0.0.0", "255.0.0.0")
-    ) {
-        return "DIRECT";
+    // IPv4 DIRECT (String Match: ip.indexOf)
+    if (ip.indexOf(".") !== -1) {
+        if (
+      ip.indexOf("5.") === 0 ||
+      ip.indexOf("10.") === 0 ||
+      ip.indexOf("31") === 0 ||
+      ip.indexOf("37.") === 0 ||
+      ip.indexOf("46.") === 0 ||
+      ip.indexOf("77.") === 0 ||
+      ip.indexOf("") === 0 ||
+      ip.indexOf("") === 0 ||
+      ip.indexOf("172") === 0 ||
+      ip.indexOf("176.") === 0 ||
+      ip.indexOf("178.") === 0 ||
+      ip.indexOf("185.") === 0 ||
+      ip.indexOf("188.") === 0 ||
+      ip.indexOf("192.168.") === 0 ||
+      ip.indexOf("") === 0 ||
+      ip.indexOf("217.") === 0
+        ) {
+            return "DIRECT";
+        }
     }
     
-    // IPv6 DIRECT (String Match)
+    // IPv6 DIRECT (String Match: ip.indexOf)
     if (ip.indexOf(":") !== -1) {
         if (
 false
@@ -84,164 +86,76 @@ false
         }
     }
 
-    // IPv4 PROXY
-    if (
-        isInNet(ip, "3.10.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.11.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.29.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.35.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.101.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.107.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.128.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.134.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.146.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.147.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.160.0.0", "255.252.0.0") ||
-        isInNet(ip, "3.164.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.165.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.166.0.0", "255.254.0.0") ||
-        isInNet(ip, "3.168.0.0", "255.252.0.0") ||
-        isInNet(ip, "3.172.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.173.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.174.0.0", "255.254.0.0") ||
-        isInNet(ip, "3.231.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.234.0.0", "255.255.0.0") ||
-        isInNet(ip, "3.236.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.32.0.0", "255.254.0.0") ||
-        isInNet(ip, "13.35.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.54.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.59.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.113.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.124.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.134.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.203.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.210.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.224.0.0", "255.252.0.0") ||
-        isInNet(ip, "13.228.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.233.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.248.0.0", "255.255.0.0") ||
-        isInNet(ip, "13.249.0.0", "255.255.0.0") ||
-        isInNet(ip, "15.158.0.0", "255.255.0.0") ||
-        isInNet(ip, "15.188.0.0", "255.255.0.0") ||
-        isInNet(ip, "15.207.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.64.0.0", "255.252.0.0") ||
-        isInNet(ip, "18.68.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.154.0.0", "255.254.0.0") ||
-        isInNet(ip, "18.160.0.0", "255.254.0.0") ||
-        isInNet(ip, "18.164.0.0", "255.254.0.0") ||
-        isInNet(ip, "18.172.0.0", "255.254.0.0") ||
-        isInNet(ip, "18.175.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.192.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.199.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.200.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.216.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.229.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.230.0.0", "255.255.0.0") ||
-        isInNet(ip, "18.238.0.0", "255.254.0.0") ||
-        isInNet(ip, "18.244.0.0", "255.254.0.0") ||
-        isInNet(ip, "23.91.0.0", "255.255.0.0") ||
-        isInNet(ip, "23.228.0.0", "255.255.0.0") ||
-        isInNet(ip, "24.110.0.0", "255.255.0.0") ||
-        isInNet(ip, "34.195.0.0", "255.255.0.0") ||
-        isInNet(ip, "34.216.0.0", "255.255.0.0") ||
-        isInNet(ip, "34.223.0.0", "255.255.0.0") ||
-        isInNet(ip, "34.226.0.0", "255.255.0.0") ||
-        isInNet(ip, "35.93.0.0", "255.255.0.0") ||
-        isInNet(ip, "35.158.0.0", "255.255.0.0") ||
-        isInNet(ip, "35.162.0.0", "255.255.0.0") ||
-        isInNet(ip, "35.167.0.0", "255.255.0.0") ||
-        isInNet(ip, "36.103.0.0", "255.255.0.0") ||
-        isInNet(ip, "43.218.0.0", "255.255.0.0") ||
-        isInNet(ip, "44.220.0.0", "255.255.0.0") ||
-        isInNet(ip, "44.222.0.0", "255.255.0.0") ||
-        isInNet(ip, "44.227.0.0", "255.255.0.0") ||
-        isInNet(ip, "44.234.0.0", "255.255.0.0") ||
-        isInNet(ip, "47.129.0.0", "255.255.0.0") ||
-        isInNet(ip, "51.44.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.15.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.46.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.47.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.52.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.56.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.57.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.66.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.78.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.82.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.84.0.0", "255.254.0.0") ||
-        isInNet(ip, "52.124.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.199.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.212.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.220.0.0", "255.255.0.0") ||
-        isInNet(ip, "52.222.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.182.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.192.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.230.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.233.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.239.0.0", "255.255.0.0") ||
-        isInNet(ip, "54.240.0.0", "255.255.0.0") ||
-        isInNet(ip, "56.125.0.0", "255.255.0.0") ||
-        isInNet(ip, "57.182.0.0", "255.255.0.0") ||
-        isInNet(ip, "57.183.0.0", "255.255.0.0") ||
-        isInNet(ip, "58.254.0.0", "255.255.0.0") ||
-        isInNet(ip, "64.252.0.0", "255.255.0.0") ||
-        isInNet(ip, "65.8.0.0", "255.255.0.0") ||
-        isInNet(ip, "65.9.0.0", "255.255.0.0") ||
-        isInNet(ip, "70.132.0.0", "255.255.0.0") ||
-        isInNet(ip, "71.152.0.0", "255.255.0.0") ||
-        isInNet(ip, "76.76.0.0", "255.255.0.0") ||
-        isInNet(ip, "76.223.0.0", "255.255.0.0") ||
-        isInNet(ip, "99.79.0.0", "255.255.0.0") ||
-        isInNet(ip, "99.84.0.0", "255.255.0.0") ||
-        isInNet(ip, "99.86.0.0", "255.255.0.0") ||
-        isInNet(ip, "103.21.0.0", "255.255.0.0") ||
-        isInNet(ip, "103.22.0.0", "255.255.0.0") ||
-        isInNet(ip, "103.31.0.0", "255.255.0.0") ||
-        isInNet(ip, "104.16.0.0", "255.248.0.0") ||
-        isInNet(ip, "104.24.0.0", "255.252.0.0") ||
-        isInNet(ip, "108.138.0.0", "255.254.0.0") ||
-        isInNet(ip, "108.156.0.0", "255.252.0.0") ||
-        isInNet(ip, "108.162.0.0", "255.255.0.0") ||
-        isInNet(ip, "111.13.0.0", "255.255.0.0") ||
-        isInNet(ip, "116.129.0.0", "255.255.0.0") ||
-        isInNet(ip, "118.193.0.0", "255.255.0.0") ||
-        isInNet(ip, "119.147.0.0", "255.255.0.0") ||
-        isInNet(ip, "120.52.0.0", "255.255.0.0") ||
-        isInNet(ip, "120.232.0.0", "255.255.0.0") ||
-        isInNet(ip, "120.253.0.0", "255.255.0.0") ||
-        isInNet(ip, "130.176.0.0", "255.255.0.0") ||
-        isInNet(ip, "131.0.0.0", "255.255.0.0") ||
-        isInNet(ip, "141.101.0.0", "255.255.0.0") ||
-        isInNet(ip, "143.204.0.0", "255.255.0.0") ||
-        isInNet(ip, "144.220.0.0", "255.255.0.0") ||
-        isInNet(ip, "162.158.0.0", "255.254.0.0") ||
-        isInNet(ip, "172.64.0.0", "255.248.0.0") ||
-        isInNet(ip, "173.245.0.0", "255.255.0.0") ||
-        isInNet(ip, "180.163.0.0", "255.255.0.0") ||
-        isInNet(ip, "188.114.0.0", "255.255.0.0") ||
-        isInNet(ip, "190.93.0.0", "255.255.0.0") ||
-        isInNet(ip, "197.234.0.0", "255.255.0.0") ||
-        isInNet(ip, "198.41.0.0", "255.255.0.0") ||
-        isInNet(ip, "204.246.0.0", "255.255.0.0") ||
-        isInNet(ip, "205.251.0.0", "255.255.0.0") ||
-        isInNet(ip, "216.137.0.0", "255.255.0.0")
-    ) {
-        return "HTTPS proxy.iconicompany.com:3129";
+    // IPv4 PROXY (String Match: ip.indexOf)
+    if (ip.indexOf(".") !== -1) {
+        if (
+      ip.indexOf("3.") === 0 ||
+      ip.indexOf("13.") === 0 ||
+      ip.indexOf("15.") === 0 ||
+      ip.indexOf("18.") === 0 ||
+      ip.indexOf("23.") === 0 ||
+      ip.indexOf("24.") === 0 ||
+      ip.indexOf("34.") === 0 ||
+      ip.indexOf("35.") === 0 ||
+      ip.indexOf("36.") === 0 ||
+      ip.indexOf("43.") === 0 ||
+      ip.indexOf("44.") === 0 ||
+      ip.indexOf("47.") === 0 ||
+      ip.indexOf("51.") === 0 ||
+      ip.indexOf("52.") === 0 ||
+      ip.indexOf("54.") === 0 ||
+      ip.indexOf("56.") === 0 ||
+      ip.indexOf("57.") === 0 ||
+      ip.indexOf("58.") === 0 ||
+      ip.indexOf("64.") === 0 ||
+      ip.indexOf("65.") === 0 ||
+      ip.indexOf("70.") === 0 ||
+      ip.indexOf("71.") === 0 ||
+      ip.indexOf("76.") === 0 ||
+      ip.indexOf("99.") === 0 ||
+      ip.indexOf("103.") === 0 ||
+      ip.indexOf("104.") === 0 ||
+      ip.indexOf("108.") === 0 ||
+      ip.indexOf("111.") === 0 ||
+      ip.indexOf("116.") === 0 ||
+      ip.indexOf("118.") === 0 ||
+      ip.indexOf("119.") === 0 ||
+      ip.indexOf("120.") === 0 ||
+      ip.indexOf("130.") === 0 ||
+      ip.indexOf("131.") === 0 ||
+      ip.indexOf("141.") === 0 ||
+      ip.indexOf("143.") === 0 ||
+      ip.indexOf("144.") === 0 ||
+      ip.indexOf("162.") === 0 ||
+      ip.indexOf("172.") === 0 ||
+      ip.indexOf("173.") === 0 ||
+      ip.indexOf("180.") === 0 ||
+      ip.indexOf("188.") === 0 ||
+      ip.indexOf("190.") === 0 ||
+      ip.indexOf("197.") === 0 ||
+      ip.indexOf("198.") === 0 ||
+      ip.indexOf("204.") === 0 ||
+      ip.indexOf("205.") === 0 ||
+      ip.indexOf("216.") === 0
+        ) {
+            return "HTTPS proxy.iconicompany.com:3129";
+        }
     }
 
-    // IPv6 PROXY (String Match)
+    // IPv6 PROXY (String Match: ip.indexOf)
     if (ip.indexOf(":") !== -1) {
         if (
-        ip.indexOf("2400:7fc0:") === 0 ||
-        ip.indexOf("2400:cb00:") === 0 ||
-        ip.indexOf("2404:c2c0:") === 0 ||
-        ip.indexOf("2405:8100:") === 0 ||
-        ip.indexOf("2405:b500:") === 0 ||
-        ip.indexOf("2409:8c00:") === 0 ||
-        ip.indexOf("2600:9000:") === 0 ||
-        ip.indexOf("2606:4700:") === 0 ||
-        ip.indexOf("2803:f800:") === 0 ||
-        ip.indexOf("2a06:98c0:") === 0 ||
-        ip.indexOf("2c0f:f248:") === 0
+      ip.indexOf("2400:7fc0:") === 0 ||
+      ip.indexOf("2400:cb00:") === 0 ||
+      ip.indexOf("2404:c2c0:") === 0 ||
+      ip.indexOf("2405:8100:") === 0 ||
+      ip.indexOf("2405:b500:") === 0 ||
+      ip.indexOf("2409:8c00:") === 0 ||
+      ip.indexOf("2600:9000:") === 0 ||
+      ip.indexOf("2606:4700:") === 0 ||
+      ip.indexOf("2803:f800:") === 0 ||
+      ip.indexOf("2a06:98c0:") === 0 ||
+      ip.indexOf("2c0f:f248:") === 0
         ) {
             return "HTTPS proxy.iconicompany.com:3129";
         }
