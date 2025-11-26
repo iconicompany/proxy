@@ -1,5 +1,5 @@
 function FindProxyForURL(url, host) {
-    // QUICK DOMAIN MATCHES (string operations)
+    // QUICK DOMAIN MATCHES
     if (
         shExpMatch(host, "(*.|)*.ru") ||
         shExpMatch(host, "(*.|)*.su") ||
@@ -74,43 +74,14 @@ function FindProxyForURL(url, host) {
     ) {
         return "DIRECT";
     }
-
-    // IPv6 helpers
-    function expandIPv6(ipv6) {
-        if (ipv6.indexOf("::") !== -1) {
-            const parts = ipv6.split("::");
-            const left = parts[0] ? parts[0].split(":") : [];
-            const right = parts[1] ? parts[1].split(":") : [];
-            const fill = new Array(8 - left.length - right.length).fill("0");
-            ipv6 = [...left, ...fill, ...right].join(":");
-        }
-        return ipv6;
-    }
-    function parseIPv6(ipv6) {
-        try {
-            const full = expandIPv6(ipv6).split(":");
-            if (full.length !== 8) return false;
-            let hex = "";
-            for (let part of full) {
-                hex += part.padStart(4, "0");
-            }
-            return BigInt("0x" + hex);
-        } catch (e) { return false; }
-    }
-    function inIPv6Range(ipv6, low, high) {
-        if (ipv6.indexOf(":") === -1) return false;
-        const ip = parseIPv6(ipv6);
-        const lo = parseIPv6(low);
-        const hi = parseIPv6(high);
-        if (ip === false || lo === false || hi === false) return false;
-        return ip >= lo && ip <= hi;
-    }
-
-    // IPv6 DIRECT
-    if (
+    
+    // IPv6 DIRECT (String Match)
+    if (ip.indexOf(":") !== -1) {
+        if (
 false
-    ) {
-        return "DIRECT";
+        ) {
+            return "DIRECT";
+        }
     }
 
     // IPv4 PROXY
@@ -257,44 +228,23 @@ false
         return "HTTPS proxy.iconicompany.com:3129";
     }
 
-    // IPv6 PROXY
-    if (
-        inIPv6Range(ip, "2400:7fc0:500::", "2400:7fc0:5ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2400:cb00::", "2400:cb00:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2404:c2c0:500::", "2404:c2c0:5ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2405:8100::", "2405:8100:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2405:b500::", "2405:b500:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2409:8c00:2421:300::", "2409:8c00:2421:3ff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2409:8c00:2421:400::", "2409:8c00:2421:4ff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:ddd::", "2600:9000:ddd:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:eee::", "2600:9000:eee:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:fff::", "2600:9000:fff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:1000::", "2600:9000:1fff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:2000::", "2600:9000:2fff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:3000::", "2600:9000:3fff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:4000::", "2600:9000:4fff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5200::", "2600:9000:52ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5308::", "2600:9000:530f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5310::", "2600:9000:531f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5320::", "2600:9000:533f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5340::", "2600:9000:537f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:5380::", "2600:9000:53ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f000::", "2600:9000:f3ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f400::", "2600:9000:f4ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f500::", "2600:9000:f51f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f520::", "2600:9000:f52f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f534::", "2600:9000:f537:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f538::", "2600:9000:f53f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f540::", "2600:9000:f57f:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f580::", "2600:9000:f5ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f600::", "2600:9000:f7ff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2600:9000:f800::", "2600:9000:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2606:4700::", "2606:4700:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2803:f800::", "2803:f800:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2a06:98c0::", "2a06:98c7:ffff:ffff:ffff:ffff:ffff:ffff") ||
-        inIPv6Range(ip, "2c0f:f248::", "2c0f:f248:ffff:ffff:ffff:ffff:ffff:ffff")
-    ) {
-        return "HTTPS proxy.iconicompany.com:3129";
+    // IPv6 PROXY (String Match)
+    if (ip.indexOf(":") !== -1) {
+        if (
+        ip.indexOf("2400:7fc0:") === 0 ||
+        ip.indexOf("2400:cb00:") === 0 ||
+        ip.indexOf("2404:c2c0:") === 0 ||
+        ip.indexOf("2405:8100:") === 0 ||
+        ip.indexOf("2405:b500:") === 0 ||
+        ip.indexOf("2409:8c00:") === 0 ||
+        ip.indexOf("2600:9000:") === 0 ||
+        ip.indexOf("2606:4700:") === 0 ||
+        ip.indexOf("2803:f800:") === 0 ||
+        ip.indexOf("2a06:98c0:") === 0 ||
+        ip.indexOf("2c0f:f248:") === 0
+        ) {
+            return "HTTPS proxy.iconicompany.com:3129";
+        }
     }
 
     return "DIRECT";
