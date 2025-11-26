@@ -58,19 +58,26 @@ function FindProxyForURL(url, host) {
         if (
       ip.indexOf("5.") === 0 ||
       ip.indexOf("10.") === 0 ||
-      ip.indexOf("31") === 0 ||
+      ip.indexOf("31.") === 0 ||
       ip.indexOf("37.") === 0 ||
       ip.indexOf("46.") === 0 ||
       ip.indexOf("77.") === 0 ||
-      ip.indexOf("") === 0 ||
-      ip.indexOf("") === 0 ||
-      ip.indexOf("172") === 0 ||
+      ip.indexOf("78.") === 0 ||
+      ip.indexOf("79.") === 0 ||
+      ip.indexOf("80.") === 0 ||
+      ip.indexOf("81.") === 0 ||
+      ip.indexOf("82.") === 0 ||
+      ip.indexOf("83.") === 0 ||
+      ip.indexOf("84.") === 0 ||
+      ip.indexOf("85.") === 0 ||
+      ip.indexOf("172.") === 0 ||
       ip.indexOf("176.") === 0 ||
       ip.indexOf("178.") === 0 ||
       ip.indexOf("185.") === 0 ||
       ip.indexOf("188.") === 0 ||
       ip.indexOf("192.168.") === 0 ||
-      ip.indexOf("") === 0 ||
+      ip.indexOf("212.") === 0 ||
+      ip.indexOf("213.") === 0 ||
       ip.indexOf("217.") === 0
         ) {
             return "DIRECT";

@@ -16,7 +16,7 @@ CACHE_DIR = Path('./cache')
 CACHE_DIR.mkdir(exist_ok=True)
 CACHE_TTL = 60 * 60 * 24  # 24 hours
 
-# === PAC template (Simplified) ===
+# === PAC template (Simplified) - ИСПРАВЛЕННЫЕ СКОБКИ ===
 PAC_HEADER = """function FindProxyForURL(url, host) {{
     // QUICK DOMAIN MATCHES
     if (
@@ -74,6 +74,7 @@ PAC_HEADER = """function FindProxyForURL(url, host) {{
     return "DIRECT";
 }}
 """
+
 # === Helpers ===
 def cache_get(name: str):
     p = CACHE_DIR / f"{name}.json"
@@ -122,7 +123,6 @@ def normalize_cidrs(cidrs: List[str]) -> Tuple[List[str], List[str]]:
 def aggregate_cidrs(cidrs: List[str], mask_limit: int, is_ipv6: bool) -> List[str]:
     """
     Aggregates CIDRs to a higher level (shorter prefix).
-    Example: if mask_limit is 32 (for IPv6), 2606:4700:1::/48 becomes 2606:4700::/32
     """
     if mask_limit is None:
         return cidrs
@@ -210,11 +210,11 @@ def generate_sh_expmatch_list(domains):
         return []
     return [f'      shExpMatch(host, "(*.|){d}")' for d in domains]
 
-# *** НОВАЯ ФУНКЦИЯ ДЛЯ IPv4: Использует ip.indexOf вместо isInNet ***
+# *** УЛУЧШЕННАЯ ФУНКЦИЯ ДЛЯ IPv4: Использует ближайший полный октет для ip.indexOf ***
 def generate_ipv4_string_rule(cidr: str) -> str:
     """
-    Generates a simple string match for IPv4.
-    Example: 192.168.0.0/24 -> ip.indexOf("192.168.0.") === 0
+    Generates a simple string match for IPv4, safely handling masks not 
+    divisible by 8 (like /12 or /9) by using the shortest possible full-octet prefix.
     """
     try:
         net = ipaddress.IPv4Network(cidr)
@@ -224,44 +224,45 @@ def generate_ipv4_string_rule(cidr: str) -> str:
         if net.prefixlen == 32:
             return f'      ip === "{compressed}"'
         
-        # Determine the prefix string based on the mask
+        # Find the boundary of the *last full octet* covered by the prefix
         octets_covered = net.prefixlen // 8
+        
+        # If prefix is less than /8 (e.g., /4 or /7), we must use the first octet 
+        # for a string match to work, even if it makes the match broader than /7.
+        if octets_covered < 1:
+            octets_covered = 1
+        
         parts = compressed.split('.')
         
-        # Construct the prefix string
+        # Construct the prefix string using only the full octets
         prefix_parts = parts[:octets_covered]
         clean_prefix = ".".join(prefix_parts)
         
-        # Append a dot if the mask is a full octet boundary (e.g., /16 -> 192.168.)
-        if net.prefixlen % 8 == 0:
-            clean_prefix += "."
+        # Append a dot to match the start of the next number
+        clean_prefix += "."
         
-        # Note: This is a string-matching heuristic, not a bitwise check.
         return f'      ip.indexOf("{clean_prefix}") === 0'
-    except:
+    except Exception:
+        # Catch errors from parsing malformed CIDR strings
         return "false"
 
 def generate_ipv6_string_rule(cidr: str) -> str:
     """
     Generates a simple string match for IPv6.
-    Example: 2606:4700::/32 -> ip.indexOf("2606:4700:") === 0
     """
     try:
         net = ipaddress.IPv6Network(cidr)
-        # Convert network address to compressed string (e.g., '2606:4700::')
         compressed = str(net.network_address)
         
-        # Refinement: If mask is very specific (like /128), string match is full match
         if net.prefixlen == 128:
             return f'      ip === "{compressed}"'
             
-        # Determine the prefix string with a trailing colon for string match
         clean_prefix = compressed.split("::")[0]
         if not clean_prefix.endswith(':'):
             clean_prefix += ':'
             
         return f'      ip.indexOf("{clean_prefix}") === 0'
-    except:
+    except Exception:
         return "false"
 
 def build_pac(direct_domains: List[str], proxy_domains: List[str],
@@ -271,7 +272,6 @@ def build_pac(direct_domains: List[str], proxy_domains: List[str],
     direct_domain_str = " ||\n".join(generate_sh_expmatch_list(direct_domains)) or "false"
     proxy_domain_str = " ||\n".join(generate_sh_expmatch_list(proxy_domains)) or "false"
     
-    # Используем generate_ipv4_string_rule для всех IPv4-правил
     ipv4_direct_str = " ||\n".join([generate_ipv4_string_rule(c) for c in ipv4_direct]) or "false"
     ipv6_direct_str = " ||\n".join([generate_ipv6_string_rule(c) for c in ipv6_direct]) or "false"
     
@@ -290,6 +290,8 @@ def build_pac(direct_domains: List[str], proxy_domains: List[str],
 # === Main ===
 def main():
     from dotenv import load_dotenv
+    # Установите вашу переменную окружения в файле .env или перед запуском
+    # PROXY_DIRECT_IPV4=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,5.0.0.0/8,31.128.0.0/9,37.0.0.0/8,46.0.0.0/8,77.0.0.0/8,78.0.0.0/7,80.0.0.0/4,176.0.0.0/8,178.0.0.0/8,185.0.0.0/8,188.0.0.0/8,212.0.0.0/7,217.0.0.0/8
     load_dotenv()
 
     proxy_domains = [d.strip() for d in os.getenv("PROXY_DOMAINS", "").split(",") if d.strip()]
