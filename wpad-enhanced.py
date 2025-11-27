@@ -1,3 +1,4 @@
+
 import os
 import sys
 import json
@@ -16,7 +17,7 @@ CACHE_DIR = Path('./cache')
 CACHE_DIR.mkdir(exist_ok=True)
 CACHE_TTL = 60 * 60 * 24  # 24 hours
 
-# === PAC template (Simplified) - ИСПРАВЛЕННЫЕ СКОБКИ ===
+# === PAC template (Simplified) ===
 PAC_HEADER = """function FindProxyForURL(url, host) {{
     // QUICK DOMAIN MATCHES
     if (
@@ -210,46 +211,28 @@ def generate_sh_expmatch_list(domains):
         return []
     return [f'      shExpMatch(host, "(*.|){d}")' for d in domains]
 
-# *** УЛУЧШЕННАЯ ФУНКЦИЯ ДЛЯ IPv4: Использует ближайший полный октет для ip.indexOf ***
 def generate_ipv4_string_rule(cidr: str) -> str:
-    """
-    Generates a simple string match for IPv4, safely handling masks not 
-    divisible by 8 (like /12 or /9) by using the shortest possible full-octet prefix.
-    """
     try:
         net = ipaddress.IPv4Network(cidr)
         compressed = str(net.network_address)
         
-        # Exact match for /32 (single host)
         if net.prefixlen == 32:
             return f'      ip === "{compressed}"'
         
-        # Find the boundary of the *last full octet* covered by the prefix
         octets_covered = net.prefixlen // 8
-        
-        # If prefix is less than /8 (e.g., /4 or /7), we must use the first octet 
-        # for a string match to work, even if it makes the match broader than /7.
         if octets_covered < 1:
             octets_covered = 1
         
         parts = compressed.split('.')
-        
-        # Construct the prefix string using only the full octets
         prefix_parts = parts[:octets_covered]
         clean_prefix = ".".join(prefix_parts)
-        
-        # Append a dot to match the start of the next number
         clean_prefix += "."
         
         return f'      ip.indexOf("{clean_prefix}") === 0'
     except Exception:
-        # Catch errors from parsing malformed CIDR strings
         return "false"
 
 def generate_ipv6_string_rule(cidr: str) -> str:
-    """
-    Generates a simple string match for IPv6.
-    """
     try:
         net = ipaddress.IPv6Network(cidr)
         compressed = str(net.network_address)
@@ -290,16 +273,20 @@ def build_pac(direct_domains: List[str], proxy_domains: List[str],
 # === Main ===
 def main():
     from dotenv import load_dotenv
-    # Установите вашу переменную окружения в файле .env или перед запуском
-    # PROXY_DIRECT_IPV4=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,5.0.0.0/8,31.128.0.0/9,37.0.0.0/8,46.0.0.0/8,77.0.0.0/8,78.0.0.0/7,80.0.0.0/4,176.0.0.0/8,178.0.0.0/8,185.0.0.0/8,188.0.0.0/8,212.0.0.0/7,217.0.0.0/8
     load_dotenv()
 
+    # Domain rules
     proxy_domains = [d.strip() for d in os.getenv("PROXY_DOMAINS", "").split(",") if d.strip()]
     direct_domains = [d.strip() for d in os.getenv("PROXY_DIRECT_DOMAINS", "").split(",") if d.strip()]
     
+    # DIRECT IP rules
     ipv4_direct_env = [c.strip() for c in os.getenv("PROXY_DIRECT_IPV4", "").split(",") if c.strip()]
     ipv6_direct_env = [c.strip() for c in os.getenv("PROXY_DIRECT_IPV6", "").split(",") if c.strip()]
     
+    # --- ИЗМЕНЕНИЕ: Читаем статические PROXY правила ---
+    ipv4_proxy_env = [c.strip() for c in os.getenv("PROXY_IPV4", "").split(",") if c.strip()]
+    ipv6_proxy_env = [c.strip() for c in os.getenv("PROXY_IPV6", "").split(",") if c.strip()]
+
     # Settings for aggregation
     ipv4_mask_str = os.getenv("IPV4_MASK", "/16").strip() 
     ipv4_mask_int = int(ipv4_mask_str.replace('/', '')) if ipv4_mask_str else None
@@ -307,14 +294,25 @@ def main():
     ipv6_mask_str = os.getenv("IPV6_MASK", "/32").strip()
     ipv6_mask_int = int(ipv6_mask_str.replace('/', '')) if ipv6_mask_str else None
 
-    # === Fetch proxy networks ===
+    # === Fetch/Collect proxy networks ===
     all_proxy_prefixes: List[str] = []
+    
+    # 1. Сначала добавляем статические настройки из ENV
+    if ipv4_proxy_env:
+        print(f"Adding static PROXY_IPV4 rules: {len(ipv4_proxy_env)}")
+        all_proxy_prefixes += ipv4_proxy_env
+        
+    if ipv6_proxy_env:
+        print(f"Adding static PROXY_IPV6 rules: {len(ipv6_proxy_env)}")
+        all_proxy_prefixes += ipv6_proxy_env
+
+    # 2. Добавляем динамические списки
     all_proxy_prefixes += fetch_cloudflare_ips('v4')
     all_proxy_prefixes += fetch_cloudflare_ips('v6')
     all_proxy_prefixes += fetch_vercel_ips()
     all_proxy_prefixes += fetch_aws_cloudfront()
 
-    # Step 1: Normalize (dedupe raw)
+    # Step 1: Normalize (dedupe raw + split v4/v6)
     ipv4_proxy_list, ipv6_proxy_list = normalize_cidrs(all_proxy_prefixes)
 
     # Step 2: Aggregate (Apply masks)
@@ -326,10 +324,11 @@ def main():
         print(f"Aggregating IPv6 to max {ipv6_mask_str} (Simplified String Match)...")
         ipv6_proxy_list = aggregate_cidrs(ipv6_proxy_list, ipv6_mask_int, is_ipv6=True)
 
-    # Normalize direct lists
+    # Normalize direct lists (static env only)
     ipv4_direct_norm, ipv6_direct_norm = normalize_cidrs(ipv4_direct_env + ipv6_direct_env)
 
-    print(f"Final Counts -> IPv4: {len(ipv4_proxy_list)}, IPv6: {len(ipv6_proxy_list)}")
+    print(f"Final Counts -> IPv4 Proxy: {len(ipv4_proxy_list)}, IPv6 Proxy: {len(ipv6_proxy_list)}")
+    print(f"Final Counts -> IPv4 Direct: {len(ipv4_direct_norm)}, IPv6 Direct: {len(ipv6_direct_norm)}")
 
     pac = build_pac(direct_domains, proxy_domains, ipv4_direct_norm, ipv6_direct_norm, ipv4_proxy_list, ipv6_proxy_list)
     
