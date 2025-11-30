@@ -83,7 +83,7 @@ function FindProxyForURL(url, host) {
             return "DIRECT";
         }
     }
-    
+
     // IPv6 DIRECT (String Match: ip.indexOf)
     if (ip.indexOf(":") !== -1) {
         if (
@@ -168,5 +168,6 @@ false
         }
     }
 
-    return "DIRECT";
+    // DEFAULT FALLBACK
+    return "HTTPS proxy.iconicompany.com:3129";
 }
