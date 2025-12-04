@@ -17,6 +17,7 @@ function FindProxyForURL(url, host) {
 
     // 1.2. Proxy Domains (Явный список для прокси)
     if (
+        shExpMatch(host, "(*.|)github.com") ||
         shExpMatch(host, "(*.|)intema.ai") ||
         shExpMatch(host, "(*.|)beeai.dev") ||
         shExpMatch(host, "(*.|)authjs.dev") ||
