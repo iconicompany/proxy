@@ -29,12 +29,12 @@ jobs:
       - name: Generate WPAD (PAC file)
         run: |
           python ./wpad.py
-
+          python ./wpad-enhanced.py
       - name: Commit and push WPAD
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add wpad.dat
-          git commit -m "Update wpad.dat" || echo "No changes"
+          git add wpad.dat wpad-enhanced.dat
+          git commit -m "Update wpad" || echo "No changes"
           git push
 
