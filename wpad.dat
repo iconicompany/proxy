@@ -11,7 +11,8 @@ function FindProxyForURL(url, host) {
         shExpMatch(host, "(*.|)xn--p1ai") ||
         shExpMatch(host, "(*.|)telegram.org") ||
         shExpMatch(host, "(*.|)live.com") ||
-        shExpMatch(host, "(*.|)github.com")
+        shExpMatch(host, "(*.|)github.com") ||
+        shExpMatch(host, "(*.|)iconicompany.com")
     ) {
         return "DIRECT";
     }
