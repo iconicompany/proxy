@@ -6,11 +6,12 @@ function FindProxyForURL(url, host) {
 
     // 1.1. DIRECT Exception Domains (Исключения)
     if (
-        shExpMatch(host, "(*.|)*.ru") ||
-        shExpMatch(host, "(*.|)*.su") ||
-        shExpMatch(host, "(*.|)*.xn--p1ai") ||
-        shExpMatch(host, "(*.|)*.telegram.org") ||
-        shExpMatch(host, "(*.|)*.live.com")
+        shExpMatch(host, "(*.|)ru") ||
+        shExpMatch(host, "(*.|)su") ||
+        shExpMatch(host, "(*.|)xn--p1ai") ||
+        shExpMatch(host, "(*.|)telegram.org") ||
+        shExpMatch(host, "(*.|)live.com") ||
+        shExpMatch(host, "(*.|)github.com")
     ) {
         return "DIRECT";
     }
