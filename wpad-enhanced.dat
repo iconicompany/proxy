@@ -1,15 +1,17 @@
 function FindProxyForURL(url, host) {
     // QUICK DOMAIN MATCHES
     if (
-      shExpMatch(host, "(*.|)*.ru") ||
-      shExpMatch(host, "(*.|)*.su") ||
-      shExpMatch(host, "(*.|)*.xn--p1ai") ||
-      shExpMatch(host, "(*.|)*.telegram.org") ||
-      shExpMatch(host, "(*.|)*.live.com")
+      shExpMatch(host, "(*.|)ru") ||
+      shExpMatch(host, "(*.|)su") ||
+      shExpMatch(host, "(*.|)xn--p1ai") ||
+      shExpMatch(host, "(*.|)telegram.org") ||
+      shExpMatch(host, "(*.|)live.com") ||
+      shExpMatch(host, "(*.|)github.com")
     ) {
         return "DIRECT";
     }
     if (
+      shExpMatch(host, "(*.|)github.com") ||
       shExpMatch(host, "(*.|)intema.ai") ||
       shExpMatch(host, "(*.|)beeai.dev") ||
       shExpMatch(host, "(*.|)authjs.dev") ||
